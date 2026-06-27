@@ -1,0 +1,62 @@
+<button class="mobile-toggle-btn" (click)="toggleSidebar()">
+  <i class="fas" [ngClass]="isSidebarOpen ? 'fa-times' : 'fa-bars'"></i>
+</button>
+
+<div class="sidebar-overlay" *ngIf="isSidebarOpen" (click)="closeSidebar()"></div>
+
+<aside class="sidebar" [class.open]="isSidebarOpen">
+  <div class="sidebar-header">
+    <i class="fas fa-paw logo-icon"></i>
+    <h2>PetCare</h2>
+  </div>
+
+  <nav class="sidebar-nav">
+
+    <a class="nav-item" routerLink="/dashboard" routerLinkActive="active" (click)="closeSidebar()">
+      <i class="fas fa-home"></i> Inicio
+    </a>
+
+    <ng-container *ngIf="userRole === 'ADMIN'">
+      <a class="nav-item" routerLink="/admin/usuarios" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-users"></i> Usuarios
+      </a>
+
+      <a class="nav-item" routerLink="/mascotas" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-cat"></i> Todos los Pacientes
+      </a>
+
+      <a class="nav-item" routerLink="/admin/veterinarios" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-user-md"></i> Veterinarios
+      </a>
+
+      <a class="nav-item" routerLink="/admin/clientes" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-user-friends"></i> Clientes
+      </a>
+      <a class="nav-item" routerLink="/citas" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-calendar-alt"></i> Gestión de Citas
+      </a>
+      <a class="nav-item" (click)="closeSidebar()"><i class="fas fa-file-medical-alt"></i> Diagnósticos Globales</a>
+    </ng-container>
+
+    <ng-container *ngIf="userRole === 'VETERINARIO'">
+      <a class="nav-item" routerLink="/mascotas" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-paw"></i> Mis Pacientes
+      </a>
+
+      <a class="nav-item" routerLink="/citas" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-calendar-day"></i> Agenda de Citas
+      </a>
+    </ng-container>
+
+    <ng-container *ngIf="userRole === 'CLIENTE'">
+      <a class="nav-item" routerLink="/mascotas" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-cat"></i> Mis Mascotas
+      </a>
+
+      <a class="nav-item" routerLink="/citas" routerLinkActive="active" (click)="closeSidebar()">
+        <i class="fas fa-calendar-alt"></i> Mis Citas Programadas
+      </a>
+    </ng-container>
+
+  </nav>
+</aside>

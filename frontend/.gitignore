@@ -1,0 +1,33 @@
+# Dependencias y paquetes
+/node_modules
+
+# Resultados de compilación y empaquetado
+/dist
+/bazel-out
+
+# Caché local de herramientas de Angular
+/.angular
+
+# Logs del sistema y de npm
+npm-debug.log
+yarn-error.log
+pnpm-debug.log
+*.log
+
+# Entornos y variables secretas (¡Muy importante!)
+.env
+.env.*
+!/.env.example
+
+# Archivos de caché del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Configuración de editores de código (Opcional, pero recomendado)
+/.vscode
+/.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

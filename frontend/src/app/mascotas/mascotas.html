@@ -1,0 +1,100 @@
+<div class="dashboard-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <div class="page-container">
+
+      <div class="page-header">
+        <div class="title-section">
+          <h1>Mascotas</h1>
+          <p>Gestiona los pacientes de la clínica</p>
+        </div>
+        <button class="btn-primary" *ngIf="puedeEditar()" (click)="abrirModal()">
+          <i class="fas fa-plus"></i> Agregar Mascota
+        </button>
+      </div>
+
+      <div class="search-bar">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Buscar por nombre, dueño o raza...">
+      </div>
+
+      <div class="cards-grid">
+        <div class="pet-card" *ngFor="let m of mascotas">
+
+          <div class="card-top">
+            <div class="card-actions" *ngIf="puedeEditar()">
+              <button class="icon-btn" (click)="abrirModal(m)"><i class="fas fa-edit"></i></button>
+              <button class="icon-btn" (click)="eliminarMascota(m.id)"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="pet-avatar">
+              <i class="fas fa-paw"></i>
+            </div>
+            <h3>{{ m.nombre }}</h3>
+            <span class="badge">{{ m.especie }} - {{ m.raza }}</span>
+          </div>
+
+          <div class="card-bottom">
+            <p><i class="far fa-user"></i> Dueño: <strong>{{ m.cliente?.nombre || 'Desconocido' }}</strong></p>
+            <div class="info-row">
+              <p><i class="fas fa-weight"></i> Peso: {{ m.peso }} kg</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>{{ idMascotaEditar ? 'Editar Mascota' : 'Nueva Mascota' }}</h2>
+      <button class="close-btn" (click)="cerrarModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <form [formGroup]="mascotaForm" (ngSubmit)="guardarMascota()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre de la Mascota</label>
+          <input type="text" formControlName="nombre">
+        </div>
+        <div class="form-group">
+          <label>Especie</label>
+          <select formControlName="especie">
+            <option value="Perro">Perro</option>
+            <option value="Gato">Gato</option>
+            <option value="Conejo">Conejo</option>
+            <option value="Exótico">Exótico</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Raza</label>
+          <input type="text" formControlName="raza">
+        </div>
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input type="number" formControlName="peso" step="0.1">
+        </div>
+
+        <div class="form-group full-width" *ngIf="userRole === 'ADMIN'">
+          <label>Seleccionar Dueño (Cliente)</label>
+          <select formControlName="clienteId">
+            <option value="" disabled selected>-- Seleccione un cliente de la lista --</option>
+            <option *ngFor="let c of clientes" [value]="c.id">
+              {{ c.nombre }} ({{ c.email }})
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="mascotaForm.invalid">
+          {{ idMascotaEditar ? 'Guardar Cambios' : 'Agregar Mascota' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+<div class="auth-container">
+
+  <div *ngIf="mensajeError" class="toast-alert error-toast">
+    <i class="fas fa-exclamation-circle"></i> {{ mensajeError }}
+  </div>
+
+  <div class="brand-section">
+    <div class="brand-content">
+      <div class="logo-icon">
+        <i class="fas fa-stethoscope"></i>
+      </div>
+      <h1>Bienvenido de nuevo</h1>
+      <p>Accede al sistema de gestión PetCare</p>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-card">
+      <h2>Iniciar Sesión</h2>
+      <p class="subtitle">Ingresa tus credenciales para continuar</p>
+
+      <form [formGroup]="loginForm" (ngSubmit)="iniciarSesion()">
+
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <div class="input-wrapper">
+            <i class="far fa-envelope"></i>
+            <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input [type]="mostrarPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••">
+
+            <span *ngIf="!mostrarPassword" class="toggle-eye" (click)="mostrarPassword = true" title="Mostrar contraseña">
+              <i class="fas fa-eye"></i>
+            </span>
+            <span *ngIf="mostrarPassword" class="toggle-eye" (click)="mostrarPassword = false" title="Ocultar contraseña">
+              <i class="fas fa-eye-slash"></i>
+            </span>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="loginForm.invalid">Ingresar</button>
+
+        <p class="login-link">¿No tienes cuenta? <a routerLink="/registro">Regístrate aquí</a></p>
+      </form>
+    </div>
+  </div>
+</div>

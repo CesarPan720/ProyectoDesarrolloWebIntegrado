@@ -1,0 +1,27 @@
+# === CONFIGURACIÓN GENERAL ===
+.env
+.env.*
+.DS_Store
+Thumbs.db
+
+# Editores de código
+.vscode/
+.idea/
+*.suo
+*.iml
+
+# === ANGULAR (FRONTEND) ===
+# Ignora la subcarpeta de dependencias y compilación
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/*.log
+
+# === SPRING BOOT (BACKEND) ===
+# Archivos de compilación de Maven/Gradle
+backend/target/
+backend/bin/
+backend/.gradle/
+backend/build/
+target/
+

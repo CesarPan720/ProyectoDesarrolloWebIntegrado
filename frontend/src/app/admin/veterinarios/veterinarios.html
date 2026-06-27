@@ -1,0 +1,90 @@
+<div class="dashboard-layout">
+  <app-sidebar></app-sidebar>
+
+  <main class="main-content">
+    <div class="page-container">
+
+      <div class="page-header">
+        <div class="title-with-icon">
+          <i class="fas fa-user-md title-icon"></i>
+          <div>
+            <h1>Veterinarios</h1>
+            <p>Gestiona el personal médico de la clínica</p>
+          </div>
+        </div>
+        <button class="btn-primary" (click)="abrirModalNuevo()">
+          <i class="fas fa-plus"></i> Nuevo Veterinario
+        </button>
+      </div>
+
+      <div class="table-container">
+        <table class="custom-table">
+          <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Especialidad</th>
+            <th>Email</th>
+            <th>Teléfono</th>
+            <th>Licencia</th>
+            <th>Acciones</th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr *ngFor="let v of veterinarios">
+            <td>{{ v.id }}</td>
+            <td class="font-bold">{{ v.nombre }}</td>
+            <td>{{ v.especialidad }}</td>
+            <td>{{ v.email }}</td>
+            <td>{{ v.telefono }}</td>
+            <td><span class="badge-licencia">{{ v.licencia }}</span></td>
+            <td class="actions-cell">
+              <button class="btn-action edit" title="Editar" (click)="abrirModalEdicion(v)">
+                <i class="fas fa-edit"></i>
+              </button>
+            </td>
+          </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarModal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>{{ idVetEditar ? 'Editar' : 'Nuevo' }} Veterinario</h2>
+      <button class="close-btn" (click)="cerrarModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <form [formGroup]="vetForm" (ngSubmit)="guardarCambios()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre Completo</label>
+          <input type="text" formControlName="nombre">
+        </div>
+        <div class="form-group">
+          <label>Correo Electrónico</label>
+          <input type="email" formControlName="email">
+        </div>
+        <div class="form-group">
+          <label>Especialidad</label>
+          <input type="text" formControlName="especialidad" placeholder="Ej. Cirugía, General">
+        </div>
+        <div class="form-group">
+          <label>Licencia</label>
+          <input type="text" formControlName="licencia" placeholder="Ej. VET-001">
+        </div>
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="text" formControlName="telefono">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="cerrarModal()">Cancelar</button>
+        <button type="submit" class="btn-primary" [disabled]="vetForm.invalid">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>

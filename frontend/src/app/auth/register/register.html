@@ -1,0 +1,91 @@
+<div class="auth-container">
+
+  <div *ngIf="mensajeExito" class="toast-alert success-toast">
+    <i class="fas fa-check-circle"></i> {{ mensajeExito }}
+  </div>
+
+  <div *ngIf="mensajeError" class="toast-alert error-toast">
+    <i class="fas fa-exclamation-circle"></i> {{ mensajeError }}
+  </div>
+
+  <div class="brand-section">
+    <div class="brand-content">
+      <div class="logo-icon">
+        <i class="fas fa-stethoscope"></i>
+      </div>
+      <h1>Únete a Nosotros</h1>
+      <p>Forma parte de nuestra familia PetCare</p>
+    </div>
+  </div>
+
+  <div class="form-section">
+    <div class="form-card">
+      <h2>Crear Cuenta</h2>
+      <p class="subtitle">Completa tus datos para registrarte</p>
+
+      <form [formGroup]="registroForm" (ngSubmit)="registrar()">
+
+        <div class="form-group">
+          <label>Nombre completo</label>
+          <div class="input-wrapper">
+            <i class="far fa-user"></i>
+            <input type="text" formControlName="nombreCompleto" placeholder="Juan Pérez">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Correo electrónico</label>
+          <div class="input-wrapper">
+            <i class="far fa-envelope"></i>
+            <input type="email" formControlName="email" placeholder="correo@ejemplo.com">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono</label>
+          <div class="input-wrapper">
+            <i class="fas fa-phone-alt"></i>
+            <input type="text" formControlName="telefono" placeholder="999 999 999">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Contraseña</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input [type]="mostrarPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••">
+
+            <span *ngIf="!mostrarPassword" class="toggle-eye" (click)="mostrarPassword = true" title="Mostrar contraseña">
+              <i class="fas fa-eye"></i>
+            </span>
+            <span *ngIf="mostrarPassword" class="toggle-eye" (click)="mostrarPassword = false" title="Ocultar contraseña">
+              <i class="fas fa-eye-slash"></i>
+            </span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Confirmar contraseña</label>
+          <div class="input-wrapper">
+            <i class="fas fa-lock"></i>
+            <input [type]="mostrarConfirmarPassword ? 'text' : 'password'" formControlName="confirmarPassword" placeholder="••••••••">
+
+            <span *ngIf="!mostrarConfirmarPassword" class="toggle-eye" (click)="mostrarConfirmarPassword = true" title="Mostrar contraseña">
+              <i class="fas fa-eye"></i>
+            </span>
+            <span *ngIf="mostrarConfirmarPassword" class="toggle-eye" (click)="mostrarConfirmarPassword = false" title="Ocultar contraseña">
+              <i class="fas fa-eye-slash"></i>
+            </span>
+          </div>
+          <small class="error" *ngIf="registroForm.hasError('mismatch') && registroForm.get('confirmarPassword')?.touched">
+            Las contraseñas no coinciden
+          </small>
+        </div>
+
+        <button type="submit" class="btn-submit" [disabled]="registroForm.invalid">Crear Cuenta</button>
+
+        <p class="login-link">¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a></p>
+      </form>
+    </div>
+  </div>
+</div>

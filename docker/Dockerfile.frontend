@@ -1,0 +1,18 @@
+FROM node:22-alpine
+
+WORKDIR /app
+
+# Copiar archivos de dependencias
+COPY frontend/package*.json ./
+
+# Instalar dependencias exactas
+RUN npm ci
+
+# Copiar el resto del código fuente
+COPY frontend/ .
+
+# Puerto por defecto que usa Angular
+EXPOSE 4200
+
+# Arranca Angular pasando el host para que puedas acceder desde tu navegador
+CMD ["npm", "run", "start", "--", "--host", "0.0.0.0"]

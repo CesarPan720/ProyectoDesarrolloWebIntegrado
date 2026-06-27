@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Resultados de compilación
+dist/
+
+# Archivos de caché y herramientas
+.angular/
+.cache/
+.nyc_output/
+coverage/
+
+# Archivos de control de versiones y configuración local
+.git/
+.gitignore
+.dockerignore
+Dockerfile*
+docker-compose*
+.vscode/
+.idea/
+
+# Documentación y otros
+README.md
+LICENSE

@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: vetMapache_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    ports:
+      - "${MYSQL_PORT_HOST}:${MYSQL_PORT_CONTAINER}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d
+    networks:
+      - veterinaria_network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: vetMapache_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: ${MYSQL_PORT_CONTAINER}
+      PMA_USER: root
+      PMA_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "${PMA_PORT_HOST}:80"
+    depends_on:
+      - mysql
+    networks:
+      - veterinaria_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: vetMapache_backend
+    restart: always
+    environment:
+      # Configuración para que Spring Boot lea directamente tu base de datos de Docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:${MYSQL_PORT_CONTAINER}/${MYSQL_DATABASE}?allowPublicKeyRetrieval=true&useSSL=false
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SERVER_PORT: ${BACKEND_PORT_CONTAINER}
+    ports:
+      - "${BACKEND_PORT_HOST}:${BACKEND_PORT_CONTAINER}"
+    volumes:
+      - ./backend:/app
+      # Cachea las dependencias de Maven para que el arranque sea inmediato tras la primera vez
+      - maven_cache:/root/.m2
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - veterinaria_network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    container_name: vetMapache_frontend
+    restart: always
+    ports:
+      - "${FRONTEND_PORT_HOST}:${FRONTEND_PORT_CONTAINER}"
+    volumes:
+      - ./frontend:/app
+      # Evita que se sobreescriban los módulos cargados dentro del contenedor
+      - /app/node_modules
+      - /app/.angular
+    depends_on:
+      - backend
+    networks:
+      - veterinaria_network
+
+  redis:
+    image: redis:alpine
+    container_name: vetMapache_redis
+    restart: always
+    ports:
+      - "${REDIS_PORT_HOST}:${REDIS_PORT_CONTAINER}"
+    networks:
+      - veterinaria_network
+
+networks:
+  veterinaria_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  # Volumen interno de Docker para la caché de dependencias Java
+  maven_cache:

@@ -1,0 +1,17 @@
+FROM maven:3.9-eclipse-temurin-21-alpine
+
+WORKDIR /app
+
+# 1. Copiar primero los archivos de configuración para aprovechar la caché de Docker
+COPY backend/pom.xml ./
+
+# 2. Descargar las dependencias sin compilar el proyecto (Acelera futuros builds)
+RUN mvn dependency:go-offline -B
+
+# 3. Copiar el código fuente del backend
+COPY backend/src ./src
+
+EXPOSE 8080
+
+# Comando para levantar la app en desarrollo permitiendo recarga interna de Spring
+CMD ["mvn", "spring-boot:run"]

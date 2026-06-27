@@ -1,0 +1,41 @@
+/* ======================================= */
+/* CONFIGURACIÓN Y FUENTES GLOBALES        */
+/* ======================================= */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #f3f4f6;
+}
+
+/* ======================================= */
+/* LAYOUT GLOBAL (Sidebar + Contenido)     */
+/* ======================================= */
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 3rem;
+}
+
+@media (max-width: 768px) {
+  .dashboard-layout {
+    flex-direction: column;
+  }
+  .main-content {
+    padding: 4.5rem 1rem 1.5rem 1rem;
+  }
+}

@@ -22,7 +22,7 @@
           <thead>
           <tr>
             <th>ID</th>
-            <th>Nombre Dueño</th>
+            <th>DNI</th> <th>Nombre Dueño</th>
             <th>Email</th>
             <th>Teléfono</th>
             <th>Acciones</th>
@@ -31,7 +31,7 @@
           <tbody>
           <tr *ngFor="let c of clientes">
             <td>{{ c.id }}</td>
-            <td class="font-bold">{{ c.nombre }}</td>
+            <td>{{ c.dni || 'Sin DNI' }}</td> <td class="font-bold">{{ c.nombre }}</td>
             <td>{{ c.email }}</td>
             <td>{{ c.telefono }}</td>
             <td class="actions-cell">
@@ -54,18 +54,44 @@
       <h2>{{ idClienteEditar ? 'Editar' : 'Nuevo' }} Cliente</h2>
       <button class="close-btn" (click)="cerrarModal()"><i class="fas fa-times"></i></button>
     </div>
+    
     <form [formGroup]="clienteForm" (ngSubmit)="guardarCambios()">
+      
       <div class="form-group">
-        <label>Nombre Completo</label>
-        <input type="text" formControlName="nombre">
+        <label>DNI (Opcional)</label>
+        <div style="display: flex; gap: 10px;">
+          <input type="text" formControlName="dni" placeholder="Ingrese 8 dígitos" maxlength="8" style="flex: 1;">
+          
+          <button type="button" class="btn-primary" (click)="buscarDni()" 
+                  [disabled]="clienteForm.get('dni')?.value?.length !== 8 || buscandoDni" 
+                  style="padding: 0 15px; border-radius: 8px;">
+            <i class="fas" [ngClass]="buscandoDni ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+          </button>
+        </div>
+        <small style="color: #6b7280; font-size: 0.8rem; margin-top: 5px; display: block;" *ngIf="mensajeErrorDni">
+          <i class="fas fa-info-circle"></i> {{ mensajeErrorDni }}
+        </small>
       </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 1rem;">
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+          <label>Nombres</label>
+          <input type="text" formControlName="nombres" placeholder="Ingrese nombres del cliente">
+        </div>
+        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+          <label>Apellidos</label>
+          <input type="text" formControlName="apellidos" placeholder="Ingrese apellidos del cliente">
+        </div>
+      </div>
+
       <div class="form-group">
         <label>Correo Electrónico</label>
-        <input type="email" formControlName="email">
+        <input type="email" formControlName="email" placeholder="ejemplo@correo.com">
       </div>
+      
       <div class="form-group">
         <label>Teléfono</label>
-        <input type="text" formControlName="telefono">
+        <input type="text" formControlName="telefono" placeholder="Ej. 987654321">
       </div>
 
       <div class="form-group">

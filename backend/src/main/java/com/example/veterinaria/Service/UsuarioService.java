@@ -52,7 +52,10 @@ public class UsuarioService {
 
         if (u.getRol() == Rol.CLIENTE) {
             Cliente c = new Cliente();
-            c.setNombre(u.getNombreCompleto());
+            c.setDni(payload.get("dni"));               // NUEVO
+            c.setNombres(payload.get("nombres"));       // NUEVO
+            c.setApellidos(payload.get("apellidos"));
+            c.setNombre(payload.get("nombres") + " " + payload.get("apellidos"));
             c.setEmail(u.getEmail());
             c.setTelefono(u.getTelefono());
             c.setUsuario(usuarioGuardado);

@@ -20,6 +20,15 @@ public class Cliente {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, length = 8)
+    private String dni;
+
+    @Size(min = 2, max = 100, message = "Los nombres debe tener entre 2 y 100 caracteres")
+    private String nombres;
+
+    @Size(min = 2, max = 100, message = "Los apellidos debe tener entre 2 y 100 caracteres")
+    private String apellidos;
+
     @NotNull
     @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 and 100 caracteres")
     @Column(nullable = false, length = 100)

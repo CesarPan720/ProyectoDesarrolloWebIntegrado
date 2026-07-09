@@ -14,5 +14,5 @@ COPY frontend/ .
 # Puerto por defecto que usa Angular
 EXPOSE 4200
 
-# Arranca Angular pasando el host para que puedas acceder desde tu navegador
+# Arranca Angular pasando el host 
 CMD ["npm", "run", "start", "--", "--host", "0.0.0.0"]

@@ -1,5 +1,6 @@
 package com.example.veterinaria.RestController;
 
+import com.example.veterinaria.Service.DniApiService;
 import com.example.veterinaria.Model.Usuario;
 import com.example.veterinaria.Service.UsuarioService;
 import org.springframework.http.HttpStatus;
@@ -14,9 +15,11 @@ import java.util.Map;
 public class UsuarioRestController {
 
     private final UsuarioService usuarioService;
+    private final DniApiService dniApiService;
 
-    public UsuarioRestController(UsuarioService usuarioService) {
+    public UsuarioRestController(UsuarioService usuarioService, DniApiService dniApiService) {
         this.usuarioService = usuarioService;
+        this.dniApiService = dniApiService;
     }
 
     @GetMapping

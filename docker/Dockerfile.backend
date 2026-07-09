@@ -5,7 +5,7 @@ WORKDIR /app
 # 1. Copiar primero los archivos de configuración para aprovechar la caché de Docker
 COPY backend/pom.xml ./
 
-# 2. Descargar las dependencias sin compilar el proyecto (Acelera futuros builds)
+# 2. Descargar las dependencias sin compilar el proyecto 
 RUN mvn dependency:go-offline -B
 
 # 3. Copiar el código fuente del backend

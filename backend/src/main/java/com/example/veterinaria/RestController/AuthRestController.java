@@ -3,11 +3,13 @@ package com.example.veterinaria.RestController;
 import com.example.veterinaria.DTO.LoginDTO;
 import com.example.veterinaria.DTO.RegistroDTO;
 import com.example.veterinaria.Service.AuthService;
+import com.example.veterinaria.Service.DniApiService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.Collections;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -15,9 +17,11 @@ import java.util.Collections;
 public class AuthRestController {
 
     private final AuthService authService;
+    private final DniApiService dniApiService;
 
-    public AuthRestController(AuthService authService) {
+    public AuthRestController(AuthService authService, DniApiService dniApiService) {
         this.authService = authService;
+        this.dniApiService = dniApiService;
     }
 
     @PostMapping("/registro")
@@ -39,6 +43,16 @@ public class AuthRestController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Collections.singletonMap("error", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/buscar-dni/{dni}")
+    public ResponseEntity<?> buscarDniPeru(@PathVariable String dni) {
+        try {
+            Map<String, Object> respuesta = dniApiService.consultarDni(dni);
+            return ResponseEntity.ok(respuesta);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Collections.singletonMap("error", "Error al consultar el DNI"));
         }
     }
 }

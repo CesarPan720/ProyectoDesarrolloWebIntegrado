@@ -37,8 +37,11 @@ public class ClienteService {
             throw new IllegalArgumentException("Error: El correo electrónico ya está registrado.");
         }
 
+        // 1. Armamos el nombre completo concatenando para la credencial de acceso
+        String nombreCompleto = payload.get("nombres") + " " + payload.get("apellidos");
+
         Usuario u = new Usuario();
-        u.setNombreCompleto(payload.get("nombre"));
+        u.setNombreCompleto(nombreCompleto); // Usamos la concatenación
         u.setEmail(email);
         u.setTelefono(payload.get("telefono"));
         u.setPassword(passwordEncoder.encode(payload.get("password")));
@@ -46,8 +49,12 @@ public class ClienteService {
         u.setActivo(true);
         Usuario usuarioGuardado = usuarioRepository.save(u);
 
+        // 2. Creamos el perfil físico con los nuevos campos de ApiPeru
         Cliente c = new Cliente();
-        c.setNombre(u.getNombreCompleto());
+        c.setDni(payload.get("dni"));               // NUEVO
+        c.setNombres(payload.get("nombres"));       // NUEVO
+        c.setApellidos(payload.get("apellidos"));   // NUEVO
+        c.setNombre(nombreCompleto);                // Mantenido por compatibilidad
         c.setEmail(u.getEmail());
         c.setTelefono(u.getTelefono());
         c.setUsuario(usuarioGuardado);
@@ -60,9 +67,17 @@ public class ClienteService {
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-        cliente.setNombre(datosActualizados.getNombre());
+        // Actualizamos los nuevos campos
+        cliente.setDni(datosActualizados.getDni());
+        cliente.setNombres(datosActualizados.getNombres());
+        cliente.setApellidos(datosActualizados.getApellidos());
         cliente.setTelefono(datosActualizados.getTelefono());
+        
+        // Volvemos a concatenar por si le corrigieron un apellido o nombre
+        String nombreCompletoActualizado = datosActualizados.getNombres() + " " + datosActualizados.getApellidos();
+        cliente.setNombre(nombreCompletoActualizado); 
 
+        // Validamos si cambió el correo
         if (!cliente.getEmail().equals(datosActualizados.getEmail())) {
             if (usuarioRepository.findByEmail(datosActualizados.getEmail()).isPresent()) {
                 throw new IllegalArgumentException("Error: El correo ya está registrado por otro usuario.");
@@ -70,9 +85,10 @@ public class ClienteService {
             cliente.setEmail(datosActualizados.getEmail());
         }
 
+        // Sincronizamos la credencial (Usuario) para que tenga el mismo nombre corregido
         Usuario usuarioAsociado = cliente.getUsuario();
         if (usuarioAsociado != null) {
-            usuarioAsociado.setNombreCompleto(datosActualizados.getNombre());
+            usuarioAsociado.setNombreCompleto(nombreCompletoActualizado);
             usuarioAsociado.setEmail(datosActualizados.getEmail());
             usuarioAsociado.setTelefono(datosActualizados.getTelefono());
             usuarioRepository.save(usuarioAsociado);

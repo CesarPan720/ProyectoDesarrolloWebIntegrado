@@ -4,27 +4,38 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth/auth';
 import { SidebarComponent } from '../shared/sidebar/sidebar';
+import { DiagnosticoService } from './diagnostico.service';
+import { Diagnostico } from './diagnostico.model';
 
 @Component({
-selector: 'app-citas',
-standalone: true,
-imports: [CommonModule, ReactiveFormsModule, SidebarComponent],
-templateUrl: './citas.html',
-styleUrls: ['./citas.css']
+  selector: 'app-citas',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent],
+  templateUrl: './citas.html',
+  styleUrls: ['./citas.css']
 })
 export class CitasComponent implements OnInit {
-userRole: string | null = '';
-citas: any[] = [];
-misMascotas: any[] = [];
-veterinarios: any[] = [];
-mostrarModal = false;
-citaForm!: FormGroup;
+  userRole: string | null = '';
+  citas: any[] = [];
+  misMascotas: any[] = [];
+  veterinarios: any[] = [];
+  
+  // Modales
+  mostrarModal = false;
+  mostrarModalDiagnostico = false;
+  
+  // Formularios
+  citaForm!: FormGroup;
+  diagnosticoForm!: FormGroup;
 
-constructor(
+  idCitaSeleccionada!: number;
+
+  constructor(
     private authService: AuthService,
     private fb: FormBuilder,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private diagnosticoService: DiagnosticoService
   ) {}
 
   ngOnInit(): void {
@@ -39,6 +50,11 @@ constructor(
       fechaHora: ['', Validators.required],
       motivo: ['', [Validators.required, Validators.maxLength(200)]]
     });
+
+    this.diagnosticoForm = this.fb.group({
+      descripcion: ['', [Validators.required, Validators.minLength(10)]],
+      recetaMedica: ['', Validators.required]
+    });
   }
 
   cargarCitas() {
@@ -47,21 +63,21 @@ constructor(
         this.citas = data;
         this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al cargar citas', err)
+      error: (err: any) => console.error('Error al cargar citas', err)
     });
   }
 
   cargarMascotas() {
     this.http.get<any[]>('http://localhost:8080/api/mascotas').subscribe({
       next: (data) => this.misMascotas = data,
-      error: (err) => console.error('Error al cargar tus mascotas', err)
+      error: (err: any) => console.error('Error al cargar tus mascotas', err)
     });
   }
 
   cargarVeterinarios() {
     this.http.get<any[]>('http://localhost:8080/api/admin/veterinarios').subscribe({
       next: (data) => this.veterinarios = data,
-      error: (err) => console.error('Error al cargar veterinarios', err)
+      error: (err: any) => console.error('Error al cargar veterinarios', err)
     });
   }
 
@@ -73,7 +89,7 @@ constructor(
           this.cargarCitas();
           this.cerrarModal();
         },
-        error: (err) => {
+        error: (err: any) => {
           alert(err.error || 'Error: El horario seleccionado no está disponible.');
         }
       });
@@ -87,27 +103,51 @@ constructor(
           alert('Cita cancelada');
           this.cargarCitas();
         },
-        error: (err) => console.error(err)
+        error: (err: any) => console.error(err)
       });
     }
   }
 
-  // Método para el Veterinario
   completarCita(id: number) {
-    if (confirm('¿Confirmas que ya atendiste a este paciente?')) {
-      this.http.put(`http://localhost:8080/api/citas/${id}/estado`, "COMPLETADA").subscribe({
+    this.idCitaSeleccionada = id;
+    this.mostrarModalDiagnostico = true;
+  }
+
+  guardarDiagnosticoYCompletar() {
+    if (this.diagnosticoForm.valid) {
+      const nuevoDiagnostico: Diagnostico = this.diagnosticoForm.value;
+
+      this.diagnosticoService.registrarDiagnostico(this.idCitaSeleccionada, nuevoDiagnostico).subscribe({
         next: () => {
-          alert('¡Excelente! Historial actualizado y cita completada.');
-          this.cargarCitas();
+          this.http.put(`http://localhost:8080/api/citas/${this.idCitaSeleccionada}/estado`, "COMPLETADA").subscribe({
+            next: () => {
+              alert('¡Excelente! Diagnóstico registrado y cita completada con éxito.');
+              this.cargarCitas();
+              this.cerrarModalDiagnostico();
+            },
+            error: (err: any) => {
+              console.error('Error al cambiar el estado de la cita', err);
+              alert('Se guardó el diagnóstico, pero no se pudo actualizar el estado de la cita.');
+            }
+          });
         },
-        error: (err) => console.error('Error al completar cita', err)
+        error: (err: any) => {
+          console.error('Error al guardar el diagnóstico', err);
+          alert('Hubo un error al guardar el diagnóstico.');
+        }
       });
     }
   }
 
   abrirModal() { this.mostrarModal = true; }
+  
   cerrarModal() {
     this.mostrarModal = false;
     this.citaForm.reset();
+  }
+
+  cerrarModalDiagnostico() {
+    this.mostrarModalDiagnostico = false;
+    this.diagnosticoForm.reset();
   }
 }

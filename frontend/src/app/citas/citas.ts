@@ -23,12 +23,15 @@ export class CitasComponent implements OnInit {
   // Modales
   mostrarModal = false;
   mostrarModalDiagnostico = false;
+  mostrarModalVerDiagnostico = false; // <-- NUEVO: Para abrir el modal de lectura
   
-  // Formularios
+  // Formularios y datos
   citaForm!: FormGroup;
   diagnosticoForm!: FormGroup;
-
   idCitaSeleccionada!: number;
+  
+  // NUEVO: Guardará el diagnóstico que el cliente/admin quiere leer
+  diagnosticoDetalle: Diagnostico | null = null; 
 
   constructor(
     private authService: AuthService,
@@ -139,6 +142,20 @@ export class CitasComponent implements OnInit {
     }
   }
 
+  // NUEVO: Método para consultar el diagnóstico y abrir el modal de lectura
+  verDiagnostico(citaId: number) {
+    this.diagnosticoService.obtenerDiagnosticoPorCita(citaId).subscribe({
+      next: (data) => {
+        this.diagnosticoDetalle = data;
+        this.mostrarModalVerDiagnostico = true;
+      },
+      error: (err: any) => {
+        console.error('Error al consultar diagnóstico', err);
+        alert('No se pudo encontrar un diagnóstico registrado para esta cita.');
+      }
+    });
+  }
+
   abrirModal() { this.mostrarModal = true; }
   
   cerrarModal() {
@@ -149,5 +166,11 @@ export class CitasComponent implements OnInit {
   cerrarModalDiagnostico() {
     this.mostrarModalDiagnostico = false;
     this.diagnosticoForm.reset();
+  }
+
+  // NUEVO: Cerrar modal de lectura
+  cerrarModalVerDiagnostico() {
+    this.mostrarModalVerDiagnostico = false;
+    this.diagnosticoDetalle = null;
   }
 }

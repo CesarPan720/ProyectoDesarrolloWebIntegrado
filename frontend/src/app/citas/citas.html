@@ -40,12 +40,18 @@
               <p class="motivo-text"><strong>Motivo:</strong> {{ c.motivo }}</p>
             </div>
           </div>
-          <div class="cita-footer" *ngIf="c.estado === 'PENDIENTE'">
-            <button class="btn-cancel" (click)="cancelarCita(c.id)" *ngIf="userRole !== 'VETERINARIO'">
+          <div class="cita-footer">
+            <!-- Acciones cuando está PENDIENTE -->
+            <button class="btn-cancel" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole !== 'VETERINARIO'">
               Cancelar Cita
             </button>
-            <button class="btn-success" (click)="completarCita(c.id)" *ngIf="userRole === 'VETERINARIO'">
+            <button class="btn-success" (click)="completarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole === 'VETERINARIO'">
               <i class="fas fa-check-circle"></i> Marcar Completada
+            </button>
+            
+            <!-- NUEVO: Botón de Ver Diagnóstico para el Cliente (si la cita está completada) -->
+            <button class="btn-primary" (click)="verDiagnostico(c.id)" *ngIf="c.estado === 'COMPLETADA' && userRole !== 'VETERINARIO'" style="background-color: #17a2b8; border-color: #17a2b8; width: 100%;">
+              <i class="fas fa-prescription-bottle-alt"></i> Ver Diagnóstico y Receta
             </button>
           </div>
         </div>
@@ -83,11 +89,17 @@
                 </span>
               </td>
               <td class="actions-cell">
+                <!-- Acciones del admin para completar o cancelar si está PENDIENTE -->
                 <button class="btn-action restore" title="Marcar como Completada" (click)="completarCita(c.id)" *ngIf="c.estado === 'PENDIENTE'">
                   <i class="fas fa-check"></i>
                 </button>
                 <button class="btn-action delete" title="Cancelar Cita" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE'">
                   <i class="fas fa-times"></i>
+                </button>
+                
+                <!-- NUEVO: Botón en tabla para que el Administrador vea el diagnóstico de citas COMPLETADAS -->
+                <button class="btn-action restore" title="Ver Diagnóstico" (click)="verDiagnostico(c.id)" *ngIf="c.estado === 'COMPLETADA'" style="background-color: #17a2b8;">
+                  <i class="fas fa-file-alt"></i>
                 </button>
               </td>
             </tr>
@@ -182,5 +194,35 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- NUEVO: MODAL PARA LEER EL DIAGNÓSTICO (CLIENTE Y ADMIN) -->
+<div class="modal-overlay" *ngIf="mostrarModalVerDiagnostico">
+  <div class="modal-content">
+    <div class="modal-header" style="background-color: #17a2b8; color: white;">
+      <h2><i class="fas fa-file-prescription"></i> Detalle del Diagnóstico</h2>
+      <button class="close-btn" (click)="cerrarModalVerDiagnostico()" style="color: white;"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-body" style="padding: 20px 0;">
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label style="font-weight: bold; color: #333; display: block; margin-bottom: 5px;">Diagnóstico / Hallazgos Clínicos:</label>
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #17a2b8; border-radius: 4px; min-height: 50px; white-space: pre-wrap;">
+          {{ diagnosticoDetalle?.descripcion }}
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label style="font-weight: bold; color: #333; display: block; margin-bottom: 5px;">Receta Médica / Tratamiento:</label>
+        <div style="background-color: #f8f9fa; padding: 15px; border-left: 4px solid #28a745; border-radius: 4px; min-height: 50px; white-space: pre-wrap;">
+          {{ diagnosticoDetalle?.recetaMedica }}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="cerrarModalVerDiagnostico()" style="width: 100%;">Entendido / Cerrar</button>
+    </div>
   </div>
 </div>

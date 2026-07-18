@@ -23,9 +23,7 @@
         <div class="pet-card" *ngFor="let m of mascotas">
 
           <!-- Mantenemos card-top original pero añadimos position relative para posicionar bien la foto de fondo si existe -->
-          <div class="card-top"
-            style="position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end;">
-
+          <div class="card-top">
             <!-- Si la mascota tiene foto, se expande como fondo de la zona superior de forma controlada sin deformar -->
             <img *ngIf="m.foto" [src]="'http://localhost:8080/api/mascotas/uploads/' + m.foto" alt="Foto Mascota"
               style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;">

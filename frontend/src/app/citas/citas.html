@@ -40,12 +40,19 @@
               <p class="motivo-text"><strong>Motivo:</strong> {{ c.motivo }}</p>
             </div>
           </div>
-          <div class="cita-footer" *ngIf="c.estado === 'PENDIENTE'">
-            <button class="btn-cancel" (click)="cancelarCita(c.id)" *ngIf="userRole !== 'VETERINARIO'">
+          
+          <!-- FOOTER DE LA TARJETA ADAPTADO -->
+          <div class="cita-footer">
+            <button class="btn-cancel" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole !== 'VETERINARIO'">
               Cancelar Cita
             </button>
-            <button class="btn-success" (click)="completarCita(c.id)" *ngIf="userRole === 'VETERINARIO'">
+            <button class="btn-success" (click)="completarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole === 'VETERINARIO'">
               <i class="fas fa-check-circle"></i> Marcar Completada
+            </button>
+            
+            <!-- Botón de Receta Médica disponible para citas ya atendidas -->
+            <button class="btn-success" (click)="generarRecetaPDF(c)" *ngIf="c.estado === 'COMPLETADA'" style="background-color: #48bb78; border-color: #48bb78;">
+              <i class="fas fa-file-pdf"></i> Descargar Receta
             </button>
           </div>
         </div>
@@ -89,6 +96,11 @@
               <button class="btn-action delete" title="Cancelar Cita" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE'">
                 <i class="fas fa-times"></i>
               </button>
+              
+              <!-- Botón de Acción PDF en la tabla de Admin si ya fue completada -->
+              <button class="btn-action restore" title="Descargar Receta" (click)="generarRecetaPDF(c)" *ngIf="c.estado === 'COMPLETADA'" style="background-color: #48bb78;">
+                <i class="fas fa-file-pdf" style="color: white;"></i>
+              </button>
             </td>
           </tr>
           </tbody>
@@ -98,6 +110,7 @@
   </main>
 </div>
 
+<!-- Modal intacto de reserva -->
 <div class="modal-overlay" *ngIf="mostrarModal">
   <div class="modal-content">
     <div class="modal-header">

@@ -17,6 +17,8 @@ userRole: string | null = '';
 mostrarModal = false;
 mascotaForm!: FormGroup;
 
+archivoSeleccionado: File | null = null;
+
 mascotas: any[] = [];
 clientes: any[] = []; // <-- Lista para almacenar los dueños (desplegable)
 idMascotaEditar: number | null = null; // <-- Rastrea si estamos editando
@@ -90,47 +92,45 @@ constructor(
 
   guardarMascota() {
     if (this.mascotaForm.valid) {
-      // 1. Clonamos el formulario para poder modificarlo
       const payload = { ...this.mascotaForm.value };
-
-      // 2. Aseguramos que el peso viaje estrictamente como número (decimal)
       payload.peso = parseFloat(payload.peso);
 
-      // 3. Limpiamos el ID del cliente para evitar choques de tipo (String vs Long)
       if (this.userRole !== 'ADMIN') {
-        // Si es cliente, BORRAMOS la propiedad por completo. Spring Boot no la necesita.
         delete payload.clienteId;
       } else {
-        // Si es admin pero por error lo dejó vacío
         if (!payload.clienteId || payload.clienteId === '') {
           delete payload.clienteId;
         } else {
-          // Aseguramos que viaje como número entero
           payload.clienteId = parseInt(payload.clienteId, 10);
         }
       }
 
-      // ==== AQUÍ SIGUE LA PETICIÓN HTTP ====
       if (this.idMascotaEditar) {
         this.http.put(`http://localhost:8080/api/mascotas/${this.idMascotaEditar}`, payload).subscribe({
-          next: () => {
-            alert('¡Mascota actualizada con éxito!');
-            this.cargarMascotas();
-            this.cerrarModal();
+          next: (res: any) => {
+            // Si hay archivo seleccionado, lo subimos inmediatamente
+            if (this.archivoSeleccionado) {
+              this.subirImagenServidor(res.id);
+            } else {
+              alert('¡Mascota actualizada con éxito!');
+              this.cargarMascotas();
+              this.cerrarModal();
+            }
           },
           error: (err) => alert('Error al actualizar la mascota')
         });
       } else {
         this.http.post('http://localhost:8080/api/mascotas', payload).subscribe({
-          next: () => {
-            alert('¡Mascota registrada con éxito!');
-            this.cargarMascotas();
-            this.cerrarModal();
+          next: (res: any) => {
+            if (this.archivoSeleccionado) {
+              this.subirImagenServidor(res.id);
+            } else {
+              alert('¡Mascota registrada con éxito!');
+              this.cargarMascotas();
+              this.cerrarModal();
+            }
           },
-          error: (err) => {
-            console.error(err); // <-- Si sigue fallando, esto nos dará detalles
-            alert('Error al registrar la mascota. Revisa la consola.');
-          }
+          error: (err) => alert('Error al registrar la mascota.')
         });
       }
     }
@@ -171,10 +171,48 @@ constructor(
   cerrarModal() {
     this.mostrarModal = false;
     this.idMascotaEditar = null;
+    this.archivoSeleccionado = null;
     this.mascotaForm.reset({ especie: 'Perro', peso: 0, clienteId: '' });
   }
 
   puedeEditar(): boolean {
     return this.userRole !== 'VETERINARIO';
   }
+
+ onFileSelected(event: any) {
+  const input = event.target;
+  if (input && input.files && input.files.length > 0) {
+    this.archivoSeleccionado = input.files[0];
+  } else {
+    this.archivoSeleccionado = null;
+  }
+}
+
+  // ==== NUEVO MÉTODO: SUBIR ARCHIVO MEDIANTE FORMDATA ====
+  subirImagenServidor(mascotaId: number) {
+    if (!this.archivoSeleccionado) return;
+
+    const formData = new FormData();
+    formData.append('archivo', this.archivoSeleccionado);
+
+    this.http.post(`http://localhost:8080/api/mascotas/${mascotaId}/foto`, formData).subscribe({
+      next: () => {
+        alert('¡Mascota guardada y foto subida correctamente!');
+        this.archivoSeleccionado = null;
+        this.cargarMascotas();
+        this.cerrarModal();
+      },
+      error: (err) => {
+        alert('Se guardó la mascota pero la foto falló al subir.');
+        this.cargarMascotas();
+        this.cerrarModal();
+      }
+    });
+  }
+
+  
+
+
+
+
 }

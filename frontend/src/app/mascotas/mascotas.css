@@ -96,6 +96,11 @@
   padding: 20px;
   color: white;
   position: relative;
+  min-height: 200px; 
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  overflow: hidden; 
 }
 
 .card-actions {
@@ -122,8 +127,11 @@
 }
 
 .pet-avatar {
-  font-size: 2.5rem;
-  margin-bottom: 10px;
+  font-size: 3.5rem; 
+  margin-top: auto;
+  margin-bottom: auto; 
+  text-align: center;
+  z-index: 3;
 }
 
 .card-top h3 {

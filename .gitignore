@@ -23,5 +23,6 @@ backend/target/
 backend/bin/
 backend/.gradle/
 backend/build/
+backend/uploads
 target/
 

@@ -7,7 +7,12 @@ import com.example.veterinaria.Repository.MascotaRepository;
 import com.example.veterinaria.Repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.UUID;
 import java.util.List;
 
 @Service
@@ -113,5 +118,49 @@ public class MascotaService {
         }
 
         mascotaRepository.delete(mascota);
+    }
+
+
+    @Transactional
+    public Mascota guardarFoto(Long id, MultipartFile archivo, String email) {
+        Mascota mascota = mascotaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Mascota no encontrada"));
+
+        Usuario usuario = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        if (usuario.getRol() == Rol.CLIENTE) {
+            Cliente cliente = clienteRepository.findByUsuario(usuario)
+                    .orElseThrow(() -> new RuntimeException("Perfil de cliente no encontrado"));
+            if (!mascota.getCliente().getId().equals(cliente.getId())) {
+                throw new RuntimeException("No tienes permiso para modificar esta mascota.");
+            }
+        }
+
+        if (archivo.isEmpty()) {
+            throw new IllegalArgumentException("El archivo no puede estar vacío");
+        }
+
+        try {
+            Path directorioUploads = Paths.get("/app/uploads");
+            if (!Files.exists(directorioUploads)) {
+                Files.createDirectories(directorioUploads);
+            }
+
+            String nombreUnicoArchivo = UUID.randomUUID().toString() + "_" + archivo.getOriginalFilename().replace(" ", "_");
+            Path rutaCompleta = directorioUploads.resolve(nombreUnicoArchivo);
+
+            Files.copy(archivo.getInputStream(), rutaCompleta);
+
+            if (mascota.getFoto() != null) {
+                Path fotoAntigua = directorioUploads.resolve(mascota.getFoto());
+                Files.deleteIfExists(fotoAntigua);
+            }
+
+            mascota.setFoto(nombreUnicoArchivo);
+            return mascotaRepository.save(mascota);
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error de Entrada/Salida al guardar la imagen: " + e.getMessage());
+        }
     }
 }

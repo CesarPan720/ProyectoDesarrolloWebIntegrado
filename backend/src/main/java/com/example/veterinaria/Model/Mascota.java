@@ -32,6 +32,9 @@ public class Mascota {
     private String raza;
     private Double peso;
 
+    @Column(length = 255)
+    private String foto;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;

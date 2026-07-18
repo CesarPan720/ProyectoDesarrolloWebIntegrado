@@ -21,31 +21,6 @@ Arquitectura Multicapa (Backend - Spring Boot): Separación estricta de responsa
 Paradigma Orientado a Componentes y Reactivo (Frontend - Angular): Implementación de componentes autónomos y modulares (Standalone Components) que manejan su propio ciclo de vida e interactúan mediante programación reactiva (RxJS) para procesar flujos de datos asíncronos en tiempo real.
 Paradigma Declarativo y Relacional (BDD): Uso de restricciones de integridad, claves foráneas y reglas de unicidad directas en MySQL para blindar la base de datos contra la duplicidad de registros sensibles (como correos o teléfonos clonados).
 
-📂 Estructura del Proyecto (Ecosistema Full-Stack)PlaintextvetMapache/
-├── vetMapache_backend/       # Proyecto Spring Boot (Java 21 / Maven)
-│   ├── src/main/java/com/example/veterinaria/
-│   │   ├── DTO/              # Objetos de Transferencia de Datos (CitaDTO, MascotaDTO)
-│   │   ├── Model/            # Entidades JPA (Usuario, Cliente, Cita, HistorialMedico)
-│   │   ├── Repository/       # Interfaces de persistencia (HistorialMedicoRepository)
-│   │   ├── Service/          # Capa de servicios y lógica de negocio (AuthService)
-│   │   └── RestController/   # Endpoints de la API REST (DiagnosticoRestController)
-│   ├── src/main/resources/
-│   │   ├── static/uploads/   # Almacenamiento local persistente de imágenes
-│   │   └── application.properties
-│   └── pom.xml               # Gestor de dependencias Maven (Lombok, Spring Security)
-│
-├── vetMapache_frontend/      # Proyecto Angular (TypeScript)
-│   ├── src/app/
-│   │   ├── auth/             # Componentes y servicios de Login/Registro
-│   │   ├── shared/sidebar/   # Componentes globales de navegación
-│   │   └── citas/            # Gestión de citas, modales e historial médico
-│   │       ├── citas.ts      # Controlador de la vista (Manejo de PDF y lógica)
-│   │       ├── citas.html    # Interfaz de usuario (Formularios y modales)
-│   │       ├── historial.service.ts # Consumo de la API de expedientes
-│   │       └── historial.model.ts   # Modelos e interfaces TypeScript
-│
-├── docker-compose.yml        # Orquestador del ecosistema (Backend, Frontend, MySQL)
-└── README.md                 # Documentación técnica del sistema
 
 🛠️ Instrucciones de Despliegue Rápido
 

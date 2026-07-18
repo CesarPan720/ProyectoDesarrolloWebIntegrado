@@ -83,13 +83,14 @@ export class CitasComponent implements OnInit {
   cargarVeterinarios() {
     this.http.get<any[]>('http://localhost:8080/api/admin/veterinarios').subscribe({
       next: (data) => this.veterinarios = data,
-      error: (err: any) => console.error('Error al cargar veterinarios', err)
+      error: (_err: any) => {
+        console.warn('Acceso restringido a veterinarios (403 expected para no-admins).');
+      }
     });
   }
 
-  // ==== NUEVO MÉTODO INTELIGENTE: PIDE LOS DATOS DEL BACKEND ANTES DE EXPORTAR EL PDF ====
+  // ==== MÉTODO INTELIGENTE: PIDE LOS DATOS DEL BACKEND ANTES DE EXPORTAR EL PDF ====
   generarRecetaPDF(cita: any) {
-    // Consultamos el servicio de Romina para traer la descripción y receta médica real guardada
     this.diagnosticoService.obtenerDiagnosticoPorCita(cita.id).subscribe({
       next: (diagReal) => {
         const elementoReceta = document.createElement('div');
@@ -163,8 +164,7 @@ export class CitasComponent implements OnInit {
           if (document.body.contains(elementoReceta)) document.body.removeChild(elementoReceta);
         });
       },
-      error: (err) => {
-        console.error('Error al obtener datos médicos para el PDF:', err);
+      error: (_err) => {
         alert('No se pudo descargar la receta porque aún no hay un diagnóstico guardado en el servidor para esta cita.');
       }
     });
@@ -208,17 +208,9 @@ export class CitasComponent implements OnInit {
 
       this.diagnosticoService.registrarDiagnostico(this.idCitaSeleccionada, nuevoDiagnostico).subscribe({
         next: () => {
-          this.http.put(`http://localhost:8080/api/citas/${this.idCitaSeleccionada}/estado`, "COMPLETADA").subscribe({
-            next: () => {
-              alert('¡Excelente! Diagnóstico registrado y cita completada con éxito.');
-              this.cargarCitas();
-              this.cerrarModalDiagnostico();
-            },
-            error: (err: any) => {
-              console.error('Error al cambiar el estado de la cita', err);
-              alert('Se guardó el diagnóstico, pero no se pudo actualizar el estado de la cita.');
-            }
-          });
+          alert('¡Excelente! Diagnóstico registrado y cita completada con éxito.');
+          this.cargarCitas();
+          this.cerrarModalDiagnostico();
         },
         error: (err: any) => {
           console.error('Error al guardar el diagnóstico', err);

@@ -167,7 +167,7 @@
   </div>
 </div>
 
-<!-- MODAL PARA REGISTRAR DIAGNÓSTICO (VETERINARIO) -->
+<!-- MODAL PARA REGISTRAR DIAGNÓSTICO E HISTORIAL CLÍNICO (VETERINARIO) -->
 <div class="modal-overlay" *ngIf="mostrarModalDiagnostico">
   <div class="modal-content">
     <div class="modal-header">
@@ -176,19 +176,38 @@
     </div>
 
     <form [formGroup]="diagnosticoForm" (ngSubmit)="guardarDiagnosticoYCompletar()">
+      
+      <!-- NUEVO: Campo Temperatura -->
+      <div class="form-group">
+        <label>Temperatura (ºC)</label>
+        <input type="text" formControlName="temperatura" placeholder="Ej: 38.5 °C">
+        <small class="error-text" *ngIf="diagnosticoForm.get('temperatura')?.touched && diagnosticoForm.get('temperatura')?.invalid" style="color: red;">
+          La temperatura es obligatoria.
+        </small>
+      </div>
+
+      <!-- NUEVO: Campo Síntomas -->
+      <div class="form-group">
+        <label>Síntomas observados</label>
+        <input type="text" formControlName="sintomas" placeholder="Ej: Fiebre, falta de apetito">
+        <small class="error-text" *ngIf="diagnosticoForm.get('sintomas')?.touched && diagnosticoForm.get('sintomas')?.invalid" style="color: red;">
+          Los síntomas son obligatorios.
+        </small>
+      </div>
+
       <div class="form-group">
         <label>Descripción del Diagnóstico / Hallazgos</label>
-        <textarea formControlName="descripcion" placeholder="Escribe los síntomas encontrados..." rows="4"></textarea>
-        <small class="error-text" *ngIf="diagnosticoForm.get('descripcion')?.touched && diagnosticoForm.get('descripcion')?.invalid" style="color: red;">
-          La descripción es obligatoria y debe tener al menos 10 caracteres.
+        <textarea formControlName="diagnostico" placeholder="Escribe los síntomas encontrados..." rows="4"></textarea>
+        <small class="error-text" *ngIf="diagnosticoForm.get('diagnostico')?.touched && diagnosticoForm.get('diagnostico')?.invalid" style="color: red;">
+          La descripción del diagnóstico es obligatoria.
         </small>
       </div>
 
       <div class="form-group">
         <label>Receta Médica / Tratamiento sugerido</label>
-        <textarea formControlName="recetaMedica" placeholder="Medicamentos, dosis, frecuencia..." rows="4"></textarea>
-        <small class="error-text" *ngIf="diagnosticoForm.get('recetaMedica')?.touched && diagnosticoForm.get('recetaMedica')?.invalid" style="color: red;">
-          La receta médica es obligatoria.
+        <textarea formControlName="tratamiento" placeholder="Medicamentos, dosis, frecuencia..." rows="4"></textarea>
+        <small class="error-text" *ngIf="diagnosticoForm.get('tratamiento')?.touched && diagnosticoForm.get('tratamiento')?.invalid" style="color: red;">
+          El tratamiento es obligatorio.
         </small>
       </div>
 

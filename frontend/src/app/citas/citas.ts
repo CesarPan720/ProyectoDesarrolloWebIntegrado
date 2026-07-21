@@ -6,6 +6,8 @@ import { AuthService } from '../auth/auth';
 import { SidebarComponent } from '../shared/sidebar/sidebar';
 import { DiagnosticoService } from './diagnostico.service';
 import { Diagnostico } from './diagnostico.model';
+import { HistorialService } from './historial.service';
+import { HistorialMedico } from './historial.model';
 
 // ==== LIBRERÍAS PARA EL PDF ====
 import jsPDF from 'jspdf';
@@ -41,7 +43,8 @@ export class CitasComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private diagnosticoService: DiagnosticoService
+    private diagnosticoService: DiagnosticoService,
+    private historialService: HistorialService
   ) {}
 
   ngOnInit(): void {
@@ -58,8 +61,10 @@ export class CitasComponent implements OnInit {
     });
 
     this.diagnosticoForm = this.fb.group({
-      descripcion: ['', [Validators.required, Validators.minLength(10)]],
-      recetaMedica: ['', Validators.required]
+      temperatura: ['', Validators.required],
+      sintomas: ['', Validators.required],
+      diagnostico: ['', [Validators.required, Validators.minLength(5)]],
+      tratamiento: ['', Validators.required]
     });
   }
 
@@ -203,22 +208,46 @@ export class CitasComponent implements OnInit {
   }
 
   guardarDiagnosticoYCompletar() {
-    if (this.diagnosticoForm.valid) {
-      const nuevoDiagnostico: Diagnostico = this.diagnosticoForm.value;
+  if (this.diagnosticoForm.valid) {
+    const formValues = this.diagnosticoForm.value;
 
-      this.diagnosticoService.registrarDiagnostico(this.idCitaSeleccionada, nuevoDiagnostico).subscribe({
-        next: () => {
-          alert('¡Excelente! Diagnóstico registrado y cita completada con éxito.');
-          this.cargarCitas();
-          this.cerrarModalDiagnostico();
-        },
-        error: (err: any) => {
-          console.error('Error al guardar el diagnóstico', err);
-          alert('Hubo un error al guardar el diagnóstico.');
-        }
-      });
-    }
+    // 1. Objeto para la tabla Diagnostico (Habilita el PDF)
+    const datosDiagnostico = {
+      descripcion: formValues.diagnostico,
+      recetaMedica: formValues.tratamiento
+    };
+
+    // 2. Objeto para el Historial Medico (Alimenta la Línea de Tiempo)
+    const datosHistorial: HistorialMedico = {
+      temperatura: formValues.temperatura,
+      sintomas: formValues.sintomas,
+      diagnostico: formValues.diagnostico,
+      tratamiento: formValues.tratamiento
+    };
+
+    // Paso A: Guardamos el diagnóstico (PDF)
+    this.diagnosticoService.registrarDiagnostico(this.idCitaSeleccionada, datosDiagnostico).subscribe({
+      next: () => {
+        // Paso B: Guardamos el expediente clínico (Historial)
+        this.historialService.registrarAtencion(this.idCitaSeleccionada, datosHistorial).subscribe({
+          next: () => {
+            alert('¡Atención registrada, PDF disponible e historial clínico actualizado con éxito!');
+            this.cargarCitas();
+            this.cerrarModalDiagnostico();
+          },
+          error: (err: any) => {
+            console.error('Error al guardar en el historial:', err);
+            alert('Ocurrió un error al guardar el expediente médico.');
+          }
+        });
+      },
+      error: (err: any) => {
+        console.error('Error al guardar el diagnóstico para PDF:', err);
+        alert('Ocurrió un error al registrar el diagnóstico.');
+      }
+    });
   }
+}
 
   verDiagnostico(citaId: number) {
     this.diagnosticoService.obtenerDiagnosticoPorCita(citaId).subscribe({

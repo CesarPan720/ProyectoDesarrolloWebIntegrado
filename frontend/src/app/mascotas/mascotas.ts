@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../auth/auth';
 import { SidebarComponent } from '../shared/sidebar/sidebar';
+import { HistorialService } from '../citas/historial.service';
 
 @Component({
 selector: 'app-mascotas',
@@ -16,6 +17,9 @@ export class MascotasComponent implements OnInit {
 userRole: string | null = '';
 mostrarModal = false;
 mascotaForm!: FormGroup;
+mostrarModalHistorial: boolean = false;
+mascotaSeleccionada: any = null;
+historialMascota: any[] = [];
 
 archivoSeleccionado: File | null = null;
 
@@ -27,7 +31,8 @@ constructor(
     private authService: AuthService,
     private fb: FormBuilder,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private historialService: HistorialService
   ) {}
 
   ngOnInit(): void {
@@ -208,10 +213,36 @@ constructor(
         this.cerrarModal();
       }
     });
+
+
+    
   }
 
   
 
+  // 🔹 MÉTODOS PARA ABRIR Y CERRAR EL EXPEDIENTE CLÍNICO
+  verHistorial(mascota: any) {
+    this.mascotaSeleccionada = mascota;
+    this.mostrarModalHistorial = true;
+    
+    this.historialService.obtenerHistorialPorMascota(mascota.id).subscribe({
+      next: (data) => {
+        this.historialMascota = data;
+        this.cdr.detectChanges(); // 👈 AGREGAR ESTA LÍNEA PARA OBLIGAR A PINTAR EL MODAL
+      },
+      error: (err) => {
+        console.error('Error al consultar el expediente:', err);
+        this.historialMascota = [];
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  cerrarModalHistorial() {
+    this.mostrarModalHistorial = false;
+    this.mascotaSeleccionada = null;
+    this.historialMascota = [];
+  }
 
 
 

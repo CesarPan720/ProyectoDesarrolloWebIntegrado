@@ -53,16 +53,19 @@
 
             <!-- Mantenemos tus etiquetas intactas subiendo su z-index si hay imagen -->
             <h3 style="z-index: 3; position: relative;">{{ m.nombre }}</h3>
-            <span class="badge" style="z-index: 3; position: relative; width: fit-content;">{{ m.especie }} - {{ m.raza
-              }}</span>
+            <span class="badge" style="z-index: 3; position: relative; width: fit-content;">{{ m.especie }} - {{ m.raza }}</span>
           </div>
 
           <div class="card-bottom">
-            <p><i class="far fa-user"></i> Dueño: <strong>{{ m.cliente?.usuario?.nombreCompleto || 'Desconocido'
-                }}</strong></p>
+            <p><i class="far fa-user"></i> Dueño: <strong>{{ m.cliente?.usuario?.nombreCompleto || 'Desconocido' }}</strong></p>
             <div class="info-row">
               <p><i class="fas fa-weight"></i> Peso: {{ m.peso }} kg</p>
             </div>
+
+            <!-- BOTÓN ACOPLADO: Ver Expediente Clínico (Línea de Tiempo) -->
+            <button class="btn-history-timeline" (click)="verHistorial(m)">
+              <i class="fas fa-notes-medical"></i> Ver Expediente Clínico
+            </button>
           </div>
 
         </div>
@@ -71,6 +74,7 @@
   </main>
 </div>
 
+<!-- MODAL: REGISTRO / EDICIÓN DE MASCOTA (Original intacto) -->
 <div class="modal-overlay" *ngIf="mostrarModal">
   <div class="modal-content">
     <div class="modal-header">
@@ -117,8 +121,7 @@
           <label style="font-weight: bold; color: #4a5568;">Foto de la Mascota</label>
           <input type="file" accept="image/*" (change)="onFileSelected($event)"
             style="border: 1px dashed #cbd5e0; padding: 8px; border-radius: 6px; background: #f7fafc; width: 100%;">
-          <small style="color: #718096; display: block; margin-top: 4px;">Formatos admitidos: JPG, PNG. Máximo
-            5MB.</small>
+          <small style="color: #718096; display: block; margin-top: 4px;">Formatos admitidos: JPG, PNG. Máximo 5MB.</small>
         </div>
       </div>
 
@@ -129,5 +132,52 @@
         </button>
       </div>
     </form>
+  </div>
+</div>
+
+<!-- MODAL ACOPLADO: LÍNEA DE TIEMPO DEL EXPEDIENTE CLÍNICO -->
+<div class="modal-overlay" *ngIf="mostrarModalHistorial">
+  <div class="modal-content modal-history-content">
+    <div class="modal-header">
+      <h2>📜 Expediente Clínico de {{ mascotaSeleccionada?.nombre }}</h2>
+      <button class="close-btn" (click)="cerrarModalHistorial()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-body-scroll">
+      <div class="timeline-container" *ngIf="historialMascota.length > 0">
+        <div class="timeline">
+          <div class="timeline-item" *ngFor="let entrada of historialMascota">
+            <div class="timeline-badge"><i class="fas fa-paw"></i></div>
+            <div class="timeline-card">
+              <div class="timeline-header">
+                <span class="fecha">📅 {{ entrada.fechaAtencion | date:'dd/MM/yyyy - hh:mm a' }}</span>
+                <span class="vet">👨‍⚕️ Atendido por: {{ entrada.veterinario?.nombre || 'Médico Veterinario' }}</span>
+              </div>
+              <div class="timeline-body">
+                <p><strong>🌡️ Temperatura:</strong> {{ entrada.temperatura }}</p>
+                <p><strong>⚠️ Síntomas:</strong> {{ entrada.sintomas }}</p>
+                <div class="doc-block diagnostic">
+                  <strong>📋 Diagnóstico:</strong>
+                  <p>{{ entrada.diagnostico }}</p>
+                </div>
+                <div class="doc-block treatment">
+                  <strong>💊 Tratamiento / Receta:</strong>
+                  <p>{{ entrada.tratamiento }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-history" *ngIf="historialMascota.length === 0">
+        <i class="fas fa-folder-open"></i>
+        <p>No hay atenciones médicas ni registros previos en el expediente de {{ mascotaSeleccionada?.nombre }}.</p>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-secondary" (click)="cerrarModalHistorial()">Cerrar Expediente</button>
+    </div>
   </div>
 </div>

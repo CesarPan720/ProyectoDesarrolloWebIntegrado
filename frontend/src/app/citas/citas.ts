@@ -9,6 +9,12 @@ import { Diagnostico } from './diagnostico.model';
 import { HistorialService } from './historial.service';
 import { HistorialMedico } from './historial.model';
 
+// ==== LIBRERÍA DE CALENDARIO INTERACTIVO ====
+import { FullCalendarModule } from '@fullcalendar/angular';
+import dayGridPlugin from '@fullcalendar/daygrid';
+import timeGridPlugin from '@fullcalendar/timegrid';
+import interactionPlugin from '@fullcalendar/interaction';
+
 // ==== LIBRERÍAS PARA EL PDF ====
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -16,7 +22,7 @@ import html2canvas from 'html2canvas';
 @Component({
   selector: 'app-citas',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, SidebarComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent, FullCalendarModule],
   templateUrl: './citas.html',
   styleUrls: ['./citas.css']
 })
@@ -26,6 +32,29 @@ export class CitasComponent implements OnInit {
   misMascotas: any[] = [];
   veterinarios: any[] = [];
   
+  // Control de Vista: 'lista' o 'calendario'
+  vistaActual: 'lista' | 'calendario' = 'lista';
+
+  // Configuración del Calendario FullCalendar (Forzamos "as any" para evitar errores de TypeScript)
+  calendarOptions: any = {
+    plugins: [dayGridPlugin as any, timeGridPlugin as any, interactionPlugin as any],
+    initialView: 'dayGridMonth',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,timeGridWeek,timeGridDay'
+    },
+    buttonText: {
+      today: 'Hoy',
+      month: 'Mes',
+      week: 'Semana',
+      day: 'Día'
+    },
+    locale: 'es',
+    events: [],
+    eventClick: this.alHacerClicEnEvento.bind(this)
+  };
+
   // Modales
   mostrarModal = false;
   mostrarModalDiagnostico = false;
@@ -72,10 +101,56 @@ export class CitasComponent implements OnInit {
     this.http.get<any[]>('http://localhost:8080/api/citas').subscribe({
       next: (data) => {
         this.citas = data;
+        this.actualizarEventosCalendario();
         this.cdr.detectChanges();
       },
       error: (err: any) => console.error('Error al cargar citas', err)
     });
+  }
+
+  // Convierte las citas recibidas en bloques visuales para FullCalendar
+  actualizarEventosCalendario() {
+    const eventos = this.citas.map(c => {
+      let colorFondo = '#f59e0b'; // Amarillo/Naranja (PENDIENTE)
+      if (c.estado === 'COMPLETADA') colorFondo = '#10b981'; // Verde
+      if (c.estado === 'CANCELADA') colorFondo = '#ef4444'; // Rojo
+
+      return {
+        id: String(c.id),
+        title: `🐾 ${c.mascota?.nombre || 'Mascota'} - ${c.motivo}`,
+        start: c.fechaHora,
+        backgroundColor: colorFondo,
+        borderColor: colorFondo,
+        textColor: '#ffffff',
+        extendedProps: { citaOriginal: c }
+      };
+    });
+
+    this.calendarOptions = {
+      ...this.calendarOptions,
+      events: eventos
+    };
+  }
+
+  // Evento al hacer clic en una cita dentro del Calendario
+  alHacerClicEnEvento(info: any) {
+    const cita = info.event.extendedProps['citaOriginal'];
+    if (!cita) return;
+
+    if (cita.estado === 'PENDIENTE' && this.userRole === 'VETERINARIO') {
+      this.completarCita(cita.id);
+    } else if (cita.estado === 'COMPLETADA') {
+      if (this.userRole === 'VETERINARIO') {
+        this.generarRecetaPDF(cita);
+      } else {
+        this.verDiagnostico(cita.id);
+      }
+    }
+  }
+
+  cambiarVista(tipo: 'lista' | 'calendario') {
+    this.vistaActual = tipo;
+    this.cdr.detectChanges();
   }
 
   cargarMascotas() {
@@ -89,12 +164,11 @@ export class CitasComponent implements OnInit {
     this.http.get<any[]>('http://localhost:8080/api/admin/veterinarios').subscribe({
       next: (data) => this.veterinarios = data,
       error: (_err: any) => {
-        console.warn('Acceso restringido a veterinarios (403 expected para no-admins).');
+        console.warn('Acceso restringido a veterinarios.');
       }
     });
   }
 
-  // ==== MÉTODO INTELIGENTE: PIDE LOS DATOS DEL BACKEND ANTES DE EXPORTAR EL PDF ====
   generarRecetaPDF(cita: any) {
     this.diagnosticoService.obtenerDiagnosticoPorCita(cita.id).subscribe({
       next: (diagReal) => {
@@ -208,46 +282,42 @@ export class CitasComponent implements OnInit {
   }
 
   guardarDiagnosticoYCompletar() {
-  if (this.diagnosticoForm.valid) {
-    const formValues = this.diagnosticoForm.value;
+    if (this.diagnosticoForm.valid) {
+      const formValues = this.diagnosticoForm.value;
 
-    // 1. Objeto para la tabla Diagnostico (Habilita el PDF)
-    const datosDiagnostico = {
-      descripcion: formValues.diagnostico,
-      recetaMedica: formValues.tratamiento
-    };
+      const datosDiagnostico = {
+        descripcion: formValues.diagnostico,
+        recetaMedica: formValues.tratamiento
+      };
 
-    // 2. Objeto para el Historial Medico (Alimenta la Línea de Tiempo)
-    const datosHistorial: HistorialMedico = {
-      temperatura: formValues.temperatura,
-      sintomas: formValues.sintomas,
-      diagnostico: formValues.diagnostico,
-      tratamiento: formValues.tratamiento
-    };
+      const datosHistorial: HistorialMedico = {
+        temperatura: formValues.temperatura,
+        sintomas: formValues.sintomas,
+        diagnostico: formValues.diagnostico,
+        tratamiento: formValues.tratamiento
+      };
 
-    // Paso A: Guardamos el diagnóstico (PDF)
-    this.diagnosticoService.registrarDiagnostico(this.idCitaSeleccionada, datosDiagnostico).subscribe({
-      next: () => {
-        // Paso B: Guardamos el expediente clínico (Historial)
-        this.historialService.registrarAtencion(this.idCitaSeleccionada, datosHistorial).subscribe({
-          next: () => {
-            alert('¡Atención registrada, PDF disponible e historial clínico actualizado con éxito!');
-            this.cargarCitas();
-            this.cerrarModalDiagnostico();
-          },
-          error: (err: any) => {
-            console.error('Error al guardar en el historial:', err);
-            alert('Ocurrió un error al guardar el expediente médico.');
-          }
-        });
-      },
-      error: (err: any) => {
-        console.error('Error al guardar el diagnóstico para PDF:', err);
-        alert('Ocurrió un error al registrar el diagnóstico.');
-      }
-    });
+      this.diagnosticoService.registrarDiagnostico(this.idCitaSeleccionada, datosDiagnostico).subscribe({
+        next: () => {
+          this.historialService.registrarAtencion(this.idCitaSeleccionada, datosHistorial).subscribe({
+            next: () => {
+              alert('¡Atención registrada, PDF disponible e historial clínico actualizado con éxito!');
+              this.cargarCitas();
+              this.cerrarModalDiagnostico();
+            },
+            error: (err: any) => {
+              console.error('Error al guardar en el historial:', err);
+              alert('Ocurrió un error al guardar el expediente médico.');
+            }
+          });
+        },
+        error: (err: any) => {
+          console.error('Error al guardar el diagnóstico para PDF:', err);
+          alert('Ocurrió un error al registrar el diagnóstico.');
+        }
+      });
+    }
   }
-}
 
   verDiagnostico(citaId: number) {
     this.diagnosticoService.obtenerDiagnosticoPorCita(citaId).subscribe({

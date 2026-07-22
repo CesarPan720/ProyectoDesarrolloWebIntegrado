@@ -374,3 +374,72 @@
   background: #fee2e2;
   color: #dc2626;
 }
+
+
+/* ======================================= */
+/* ESTILOS PARA EL CALENDARIO Y CONMUTADOR */
+/* ======================================= */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.view-toggle {
+  display: flex;
+  background: #e5e7eb;
+  padding: 4px;
+  border-radius: 10px;
+}
+
+.view-toggle button {
+  border: none;
+  background: transparent;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #4b5563;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.view-toggle button.active {
+  background: white;
+  color: #a855f7;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.calendar-container {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  margin-top: 20px;
+}
+
+/* Personalización de botones y eventos de FullCalendar */
+.fc .fc-button-primary {
+  background-color: #a855f7 !important;
+  border-color: #a855f7 !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #9333ea !important;
+  border-color: #9333ea !important;
+}
+
+.fc .fc-button-primary:disabled {
+  background-color: #d8b4fe !important;
+  border-color: #d8b4fe !important;
+}
+
+.fc-event {
+  cursor: pointer;
+  border-radius: 6px !important;
+  padding: 3px 6px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+}

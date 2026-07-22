@@ -7,119 +7,135 @@
       <div class="page-header">
         <div class="title-section">
           <h1>Mis Citas Médicas</h1>
-          <p>Gestiona las consultas de tus mascotas</p>
+          <p>Gestiona las consultas de tus mascotas de forma visual y organizada</p>
         </div>
-        <button class="btn-primary" (click)="abrirModal()" *ngIf="userRole !== 'VETERINARIO'">
-          <i class="fas fa-calendar-plus"></i> Reservar Nueva Cita
-        </button>
+        
+        <div class="header-actions">
+          <!-- CONMUTADOR DE VISTAS (TABLA VS CALENDARIO) -->
+          <div class="view-toggle">
+            <button [class.active]="vistaActual === 'lista'" (click)="cambiarVista('lista')">
+              <i class="fas fa-list"></i> Lista
+            </button>
+            <button [class.active]="vistaActual === 'calendario'" (click)="cambiarVista('calendario')">
+              <i class="fas fa-calendar-alt"></i> Agenda Visual
+            </button>
+          </div>
+
+          <button class="btn-primary" (click)="abrirModal()" *ngIf="userRole !== 'VETERINARIO'">
+            <i class="fas fa-calendar-plus"></i> Reservar Nueva Cita
+          </button>
+        </div>
       </div>
 
-      <div class="citas-grid" *ngIf="userRole !== 'ADMIN'">
+      <!-- VISTA 1: CALENDARIO INTERACTIVO (FULLCALENDAR) -->
+      <div class="calendar-container" *ngIf="vistaActual === 'calendario'">
+        <full-calendar [options]="calendarOptions"></full-calendar>
+      </div>
 
-        <div class="empty-state" *ngIf="citas.length === 0">
-          <i class="far fa-calendar-times"></i>
-          <p>Aún no tienes citas programadas.</p>
-        </div>
-
-        <div class="cita-card" *ngFor="let c of citas">
-          <div class="cita-status" [ngClass]="c.estado?.toLowerCase() || 'pendiente'">
-            {{ c.estado || 'PENDIENTE' }}
+      <!-- VISTA 2: LISTA DE TARJETAS / TABLA (ESTRUCTURA ORIGINAL) -->
+      <ng-container *ngIf="vistaActual === 'lista'">
+        
+        <div class="citas-grid" *ngIf="userRole !== 'ADMIN'">
+          <div class="empty-state" *ngIf="citas.length === 0">
+            <i class="far fa-calendar-times"></i>
+            <p>Aún no tienes citas programadas.</p>
           </div>
-          <div class="cita-body">
-            <div class="cita-main-info">
-              <i class="fas fa-paw icon-pink"></i>
-              <div>
-                <h4>{{ c.mascota?.nombre || 'Mascota eliminada' }}</h4>
-                <p>Especie: {{ c.mascota?.especie || 'N/A' }}</p>
+
+          <div class="cita-card" *ngFor="let c of citas">
+            <div class="cita-status" [ngClass]="c.estado?.toLowerCase() || 'pendiente'">
+              {{ c.estado || 'PENDIENTE' }}
+            </div>
+            <div class="cita-body">
+              <div class="cita-main-info">
+                <i class="fas fa-paw icon-pink"></i>
+                <div>
+                  <h4>{{ c.mascota?.nombre || 'Mascota eliminada' }}</h4>
+                  <p>Especie: {{ c.mascota?.especie || 'N/A' }}</p>
+                </div>
+              </div>
+              <hr>
+              <div class="cita-details">
+                <p><i class="far fa-calendar-alt"></i> {{ c.fechaHora | date:'dd/MM/yyyy HH:mm' }}</p>
+                <p><i class="fas fa-user-md"></i> Dr/a. {{ c.veterinario?.nombre || 'Sin asignar' }}</p>
+                <p class="motivo-text"><strong>Motivo:</strong> {{ c.motivo }}</p>
               </div>
             </div>
-            <hr>
-            <div class="cita-details">
-              <p><i class="far fa-calendar-alt"></i> {{ c.fechaHora | date:'dd/MM/yyyy HH:mm' }}</p>
-              <p><i class="fas fa-user-md"></i> Dr/a. {{ c.veterinario?.nombre || 'Sin asignar' }}</p>
-              <p class="motivo-text"><strong>Motivo:</strong> {{ c.motivo }}</p>
-            </div>
-          </div>
-          
-          <div class="cita-footer">
-            <!-- Acciones cuando está PENDIENTE -->
-            <button class="btn-cancel" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole !== 'VETERINARIO'">
-              Cancelar Cita
-            </button>
-            <button class="btn-success" (click)="completarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole === 'VETERINARIO'">
-              <i class="fas fa-check-circle"></i> Marcar Completada
-            </button>
             
-            <!-- Acciones cuando está COMPLETADA -->
-            <div *ngIf="c.estado === 'COMPLETADA'" style="display: flex; gap: 8px; width: 100%;">
-              <!-- Botón de Romina para abrir el modal visual -->
-              <button class="btn-primary" (click)="verDiagnostico(c.id)" *ngIf="userRole !== 'VETERINARIO'" style="background-color: #17a2b8; border-color: #17a2b8; flex: 1;">
-                <i class="fas fa-prescription-bottle-alt"></i> Ver Diagnóstico
+            <div class="cita-footer">
+              <button class="btn-cancel" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole !== 'VETERINARIO'">
+                Cancelar Cita
               </button>
+              <button class="btn-success" (click)="completarCita(c.id)" *ngIf="c.estado === 'PENDIENTE' && userRole === 'VETERINARIO'">
+                <i class="fas fa-check-circle"></i> Marcar Completada
+              </button>
+              
+              <div *ngIf="c.estado === 'COMPLETADA'" style="display: flex; gap: 8px; width: 100%;">
+                <button class="btn-primary" (click)="verDiagnostico(c.id)" *ngIf="userRole !== 'VETERINARIO'" style="background-color: #17a2b8; border-color: #17a2b8; flex: 1;">
+                  <i class="fas fa-prescription-bottle-alt"></i> Ver Diagnóstico
+                </button>
 
-              <!-- Tu botón para descargar el PDF directo -->
-              <button class="btn-success" (click)="generarRecetaPDF(c)" style="background-color: #48bb78; border-color: #48bb78; flex: 1; cursor: pointer;">
-                <i class="fas fa-file-pdf"></i> Descargar Receta
-              </button>
+                <button class="btn-success" (click)="generarRecetaPDF(c)" style="background-color: #48bb78; border-color: #48bb78; flex: 1; cursor: pointer;">
+                  <i class="fas fa-file-pdf"></i> Descargar Receta
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div class="table-container" *ngIf="userRole === 'ADMIN'">
+        <div class="table-container" *ngIf="userRole === 'ADMIN'">
+          <div class="empty-state" *ngIf="citas.length === 0">
+            <i class="far fa-calendar-times"></i>
+            <p>No hay citas registradas en el sistema.</p>
+          </div>
 
-        <div class="empty-state" *ngIf="citas.length === 0">
-          <i class="far fa-calendar-times"></i>
-          <p>No hay citas registradas en el sistema.</p>
+          <table class="custom-table" *ngIf="citas.length > 0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Fecha y Hora</th>
+                <th>Paciente</th>
+                <th>Dueño (Cliente)</th>
+                <th>Médico Asignado</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let c of citas">
+                <td>{{ c.id }}</td>
+                <td class="font-bold">{{ c.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ c.mascota?.nombre || 'N/A' }}</td>
+                <td>{{ c.mascota?.cliente?.nombre || 'N/A' }}</td>
+                <td>Dr. {{ c.veterinario?.nombre || 'N/A' }}</td>
+                <td>
+                  <span class="cita-status" [ngClass]="c.estado?.toLowerCase() || 'pendiente'" style="border-radius: 4px; display: inline-block;">
+                    {{ c.estado || 'PENDIENTE' }}
+                  </span>
+                </td>
+                <td class="actions-cell">
+                  <button class="btn-action restore" title="Marcar como Completada" (click)="completarCita(c.id)" *ngIf="c.estado === 'PENDIENTE'">
+                    <i class="fas fa-check"></i>
+                  </button>
+                  <button class="btn-action delete" title="Cancelar Cita" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE'">
+                    <i class="fas fa-times"></i>
+                  </button>
+                  
+                  <div *ngIf="c.estado === 'COMPLETADA'" style="display: flex; gap: 4px;">
+                    <button class="btn-action restore" title="Ver Diagnóstico" (click)="verDiagnostico(c.id)" style="background-color: #17a2b8;">
+                      <i class="fas fa-file-alt"></i>
+                    </button>
+                    <button class="btn-action restore" title="Descargar Receta (PDF)" (click)="generarRecetaPDF(c)" style="background-color: #48bb78;">
+                      <i class="fas fa-file-pdf" style="color: white;"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <table class="custom-table" *ngIf="citas.length > 0">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Fecha y Hora</th>
-              <th>Paciente</th>
-              <th>Dueño (Cliente)</th>
-              <th>Médico Asignado</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let c of citas">
-              <td>{{ c.id }}</td>
-              <td class="font-bold">{{ c.fechaHora | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td>{{ c.mascota?.nombre || 'N/A' }}</td>
-              <td>{{ c.mascota?.cliente?.nombre || 'N/A' }}</td>
-              <td>Dr. {{ c.veterinario?.nombre || 'N/A' }}</td>
-              <td>
-                <span class="cita-status" [ngClass]="c.estado?.toLowerCase() || 'pendiente'" style="border-radius: 4px; display: inline-block;">
-                  {{ c.estado || 'PENDIENTE' }}
-                </span>
-              </td>
-              <td class="actions-cell">
-                <!-- Acciones del admin para completar o cancelar si está PENDIENTE -->
-                <button class="btn-action restore" title="Marcar como Completada" (click)="completarCita(c.id)" *ngIf="c.estado === 'PENDIENTE'">
-                  <i class="fas fa-check"></i>
-                </button>
-                <button class="btn-action delete" title="Cancelar Cita" (click)="cancelarCita(c.id)" *ngIf="c.estado === 'PENDIENTE'">
-                  <i class="fas fa-times"></i>
-                </button>
-                
-                <!-- Acciones para citas COMPLETADAS en la tabla -->
-                <div *ngIf="c.estado === 'COMPLETADA'" style="display: flex; gap: 4px;">
-                  <button class="btn-action restore" title="Ver Diagnóstico" (click)="verDiagnostico(c.id)" style="background-color: #17a2b8;">
-                    <i class="fas fa-file-alt"></i>
-                  </button>
-                  <button class="btn-action restore" title="Descargar Receta (PDF)" (click)="generarRecetaPDF(c)" style="background-color: #48bb78;">
-                    <i class="fas fa-file-pdf" style="color: white;"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      </ng-container>
+
     </div>
   </main>
 </div>
@@ -167,7 +183,7 @@
   </div>
 </div>
 
-<!-- MODAL PARA REGISTRAR DIAGNÓSTICO E HISTORIAL CLÍNICO (VETERINARIO) -->
+<!-- MODAL PARA REGISTRAR DIAGNÓSTICO E HISTORIAL CLÍNICO -->
 <div class="modal-overlay" *ngIf="mostrarModalDiagnostico">
   <div class="modal-content">
     <div class="modal-header">
@@ -176,8 +192,6 @@
     </div>
 
     <form [formGroup]="diagnosticoForm" (ngSubmit)="guardarDiagnosticoYCompletar()">
-      
-      <!-- NUEVO: Campo Temperatura -->
       <div class="form-group">
         <label>Temperatura (ºC)</label>
         <input type="text" formControlName="temperatura" placeholder="Ej: 38.5 °C">
@@ -186,7 +200,6 @@
         </small>
       </div>
 
-      <!-- NUEVO: Campo Síntomas -->
       <div class="form-group">
         <label>Síntomas observados</label>
         <input type="text" formControlName="sintomas" placeholder="Ej: Fiebre, falta de apetito">
@@ -221,7 +234,7 @@
   </div>
 </div>
 
-<!-- MODAL PARA LEER EL DIAGNÓSTICO (CLIENTE Y ADMIN) -->
+<!-- MODAL PARA LEER EL DIAGNÓSTICO -->
 <div class="modal-overlay" *ngIf="mostrarModalVerDiagnostico">
   <div class="modal-content">
     <div class="modal-header" style="background-color: #17a2b8; color: white;">
